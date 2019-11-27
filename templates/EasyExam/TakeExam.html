@@ -1,0 +1,75 @@
+{% extends "EasyExam/Base.html" %}
+{% block body %}
+    <div class="container">
+        <div class="card mt-2 mb-2">
+        <div class="card-header text-center">
+            <h2 class="card-title">{{ exam.exam_group.name }} {{ exam.name }}</h2>
+            <span class="float-right">Duration {{ exam.duration }}</span>
+        </div>
+        <div class="card-body">
+        <form>
+        {% for question in questions %}
+            <div class="row">
+            <div class="col-lg-12">
+                <p><h3>{{ forloop.counter }}. {{ question.question_text }} ({{ question.max_mark }} marks)</h3></p>
+            </div>
+            {% if question.question_image %}
+                <div class="col-lg-4"></div>
+                <div class="col-lg-4">
+                <img src="{{ question.question_image.url }}" class="img-fluid" width="400" height="400" alt="Image not available"/>
+                </div>
+                <div class="col-lg-4"></div>
+            {% endif %}
+            {% if question.question_video %}
+                <div class="col-lg-4"></div>
+                <div class="col-lg-4">
+                <video src="{{ question.question_video.url }}" width="400" height="400" controls></video>
+                </div>
+                <div class="col-lg-4"></div>
+            {% endif %}
+            {% if question.question_audio %}
+                <div class="col-lg-4"></div>
+                <div class="col-lg-4">
+                <audio src="{{ question.question_audio.url }}" controls></audio>
+                </div>
+                <div class="col-lg-4"></div>
+            {% endif %}
+            {% if question.answer_type == "text" %}
+                <div class="col-lg-12">
+                    <input class="form-control" placeholder="Write your answer here" type="text" id="question{{ question.id }}" name="question{{ question.id }}">
+                </div>
+            {% elif question.answer_type == "multi_text" %}
+                <div class="col-lg-12">
+                <textarea placeholder="Write your answer here" class="form-control" name="question{{ question.id }}" id="question{{ question.id }}"></textarea>
+                </div>
+            {% elif question.answer_type == "single_choice" %}
+                {% for ans in question.get_multiple_answers %}
+                    <div class="col-lg-3 text-center">
+                        <input class="form-check-input" type="radio" name="question{{ question.id }}" value="{{ ans.value }}">
+                        {{ ans.desc }}
+                    </div>
+
+                {% endfor %}
+            {% else %}
+                {% for ans in question.get_multiple_answers %}
+                    <div class="col-lg-3 text-center">
+                        <input class="form-check-input" type="checkbox" name="question{{ question.id }}" value="{{ ans.value }}">
+                        {{ ans.desc }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            </div>
+            <hr>
+        {% endfor %}
+
+        </form>
+        </div>
+        <div class="card-footer">
+            <div class="d-flex justify-content-around">
+            <button class="btn btn-primary float" id="submitBtn">Submit Your Answers</button>
+            <button class="btn btn-danger" id="forfeitBtn">Forfeit The Exam</button>
+        </div>
+        </div>
+        </div>
+    </div>
+{% endblock %}

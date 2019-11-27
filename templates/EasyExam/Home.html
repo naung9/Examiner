@@ -1,0 +1,35 @@
+{% extends "EasyExam/Base.html" %}
+{% block title %}Exam Selection{% endblock %}
+{% block body %}
+    <div class="container">
+        <div class="row mt-3">
+            <div class="col-lg-4">
+                <div class="card">
+                    <h4 class="card-title">Upcoming Exams</h4>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% for exam_group in exam_groups %}
+                                <a href="#" class="list-group-item list-group-item-action">
+                                {{ exam_group.name }}<span class="float-right">{{ exam_group.exam_date }}</span>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                <div class="card-footer"><a href="#" class="btn btn-info float-right">See More</a></div>
+                </div>
+            </div>
+             <div class="col-lg-4">
+                <div class="card">
+                    <h4 class="card-title">Recent Exam Results</h4>
+                    <div class="card-body"></div>
+                </div>
+            </div>
+             <div class="col-lg-4">
+                <div class="card">
+                    <h4 class="card-title">Upcoming Exams</h4>
+                    <div class="card-body"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
