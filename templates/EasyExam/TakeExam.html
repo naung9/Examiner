@@ -124,10 +124,6 @@
         var exam_start = new Date("{{ exam.exam_start_time.isoformat }}");
         var duration = {{ exam.duration }};
         var exam_end = new Date(exam_start.getTime() + (duration*60000));
-        {#setTimeout(function () {#}
-        {#    alert("Timeout, your answers will be submitted automatically");#}
-        {#    document.getElementById("exam-form").submit();#}
-        {# }, duration * 60000);#}
         var isReady = false;
         var timerInterval = setInterval(function () {
             var now = new Date().getTime();
