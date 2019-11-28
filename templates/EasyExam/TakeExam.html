@@ -1,13 +1,16 @@
 {% extends "EasyExam/Base.html" %}
 {% block body %}
+    <div class="ml-2" style="top: auto; width: auto; display: inline-block; position: fixed"><div class="card mt-2 mr-2"><h3 id="timer"></h3></div></div>
     <div class="container">
         <div class="card mt-2 mb-2">
         <div class="card-header text-center">
-            <h2 class="card-title">{{ exam.exam_group.name }} {{ exam.name }}</h2>
-            <span class="float-right">Duration {{ exam.duration }}</span>
+            <h2 class="card-title">{{ exam.exam_group.name }} {{ exam.name }} {{ exam.exam_group.exam_date }}</h2>
+            <h3 id="examStatus"></h3>
+            <span class="float-left">Duration {{ exam.duration }} minutes</span>
         </div>
-        <div class="card-body">
-        <form>
+        <div id="questions" class="card-body d-none">
+        <form id="exam-form" method="post" action="{% url "EasyExam:evaluate" exam.id %}">
+        {% csrf_token %}
         {% for question in questions %}
             <div class="row">
             <div class="col-lg-12">
@@ -23,7 +26,10 @@
             {% if question.question_video %}
                 <div class="col-lg-4"></div>
                 <div class="col-lg-4">
-                <video src="{{ question.question_video.url }}" width="400" height="400" controls></video>
+                <video width="400" height="400" controls>
+                    <source src="{{ question.question_video.url }}">
+                    Your browser does not support the video tag.
+                </video>
                 </div>
                 <div class="col-lg-4"></div>
             {% endif %}
@@ -66,10 +72,116 @@
         </div>
         <div class="card-footer">
             <div class="d-flex justify-content-around">
-            <button class="btn btn-primary float" id="submitBtn">Submit Your Answers</button>
-            <button class="btn btn-danger" id="forfeitBtn">Forfeit The Exam</button>
+            <button class="btn btn-primary" disabled id="submitBtn" data-toggle="modal" data-target="#confirmSubmit">Submit Your Answers</button>
+            <button class="btn btn-danger" disabled id="forfeitBtn" data-toggle="modal" data-target="#forfeit-modal">Forfeit The Exam</button>
         </div>
         </div>
         </div>
     </div>
+
+    <div class="modal fade" tabindex="-1" role="dialog" id="confirmSubmit">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Are you sure?</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>You still have time to review your answers. Do you really want to submit now?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" form="exam-form" class="btn btn-primary">Yes. I am confident.</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal">No, I will review.</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" tabindex="-1" role="dialog" id="forfeit-modal">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Are you sure?</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>You will fail the exam no matter how much your answers are correct. Do you want to forfeit?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="forfeit" class="btn btn-primary">Yes</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal">No</button>
+          </div>
+        </div>
+      </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+    $(document).ready(function () {
+        var exam_start = new Date("{{ exam.exam_start_time.isoformat }}");
+        var duration = {{ exam.duration }};
+        var exam_end = new Date(exam_start.getTime() + (duration*60000));
+        {#setTimeout(function () {#}
+        {#    alert("Timeout, your answers will be submitted automatically");#}
+        {#    document.getElementById("exam-form").submit();#}
+        {# }, duration * 60000);#}
+        var isReady = false;
+        var timerInterval = setInterval(function () {
+            var now = new Date().getTime();
+            if(now > exam_end.getTime()){
+                clearInterval(timerInterval);
+                $("#questions").addClass("d-none");
+                $("#submitBtn").prop("disabled", true);
+                $("#forfeitBtn").prop("disabled", true);
+                $("#timer").text("00:00:00");
+                $("#examStatus").text("Exam Is Over");
+                if(isReady){
+                    alert("Timeout, your answers will be submitted automatically");
+                    $("#exam-form").submit();
+                }
+                return;
+            }
+            if(now >= exam_start.getTime()){
+                if(!isReady){
+                    $("#questions").removeClass("d-none");
+                    $("#submitBtn").prop("disabled", false);
+                    $("#forfeitBtn").prop("disabled", false);
+                    $("#examStatus").text("Exam Has Started");
+                    isReady = true;
+                }
+                var delta = exam_end.getTime() - now;
+                var hour = (Math.floor(delta / (1000*60*60)) % 24);
+                var minutes = (Math.floor(delta / (1000*60)) % 60);
+                var seconds = Math.floor(delta / 1000) % 60 ;
+                var time = "";
+                if (hour < 10){time += "0"+hour;}
+                else time += hour;
+                if (minutes < 10){time += ":0"+minutes;}
+                else time += ":"+minutes;
+                if (seconds < 10){time += ":0"+seconds;}
+                else time += ":"+seconds;
+                $("#timer").text(time);
+            }else {
+                $("#timer").text("{{ exam.get_timer }}");
+                var delta = exam_start.getTime() - now;
+                var days = Math.floor(delta / (1000*60*60*24));
+                var hour = (Math.floor(delta / (1000*60*60)) % 24);
+                var minutes = (Math.floor(delta / (1000*60)) % 60);
+                var seconds = Math.floor(delta / 1000) % 60 ;
+                var time = days+ " days ";
+                if (hour < 10){time += "0"+hour;}
+                else time += hour;
+                if (minutes < 10){time += ":0"+minutes;}
+                else time += ":"+minutes;
+                if (seconds < 10){time += ":0"+seconds;}
+                else time += ":"+seconds;
+                $("#examStatus").text("Exam Is Not Yet Started. Exam will start in "+time);
+            }
+        },1000);
+    });
+
+    </script>
 {% endblock %}

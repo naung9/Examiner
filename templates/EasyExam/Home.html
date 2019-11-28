@@ -3,31 +3,57 @@
 {% block body %}
     <div class="container">
         <div class="row mt-3">
-            <div class="col-lg-4">
+            <div class="col-lg-6">
                 <div class="card">
                     <h4 class="card-title">Upcoming Exams</h4>
                     <div class="card-body">
-                        <div class="list-group">
-                            {% for exam_group in exam_groups %}
-                                <a href="#" class="list-group-item list-group-item-action">
+                        <ul class="list-group">
+                            {% for exam_group in upcoming_exam_groups %}
+                                <li class="list-group-item">
                                 {{ exam_group.name }}<span class="float-right">{{ exam_group.exam_date }}</span>
-                                </a>
+                                    <ul class="list-group">
+                                        {% for exam in exam_group.exam_set.all %}
+                                            <li class="list-group-item list-group-item-action">
+                                            <a href="{% url "EasyExam:take_exam" exam.id %}">
+                                                {{ exam.name }} at {{ exam.exam_start_time }}
+                                            </a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+
                             {% endfor %}
-                        </div>
+                        </ul>
                     </div>
-                <div class="card-footer"><a href="#" class="btn btn-info float-right">See More</a></div>
                 </div>
             </div>
-             <div class="col-lg-4">
+             <div class="col-lg-6">
                 <div class="card">
-                    <h4 class="card-title">Recent Exam Results</h4>
-                    <div class="card-body"></div>
-                </div>
-            </div>
-             <div class="col-lg-4">
-                <div class="card">
-                    <h4 class="card-title">Upcoming Exams</h4>
-                    <div class="card-body"></div>
+                    <h4 class="card-title">Exams Registered</h4>
+                    <div class="card-body">
+                        <ul class="list-group">
+                        {% for exam_group in registered_exam_groups %}
+                            <li class="list-group-item">
+                                {{ exam_group.name }}<span class="float-right">{{ exam_group.date }}</span>
+                                <ul class="list-group">
+                                    {% for exam in exam_group.exams %}
+                                        <li class="list-group-item list-group-item-action">
+                                        {% if exam.completed %}
+                                            <a href="{% url "EasyExam:exam_results" exam.id %}">
+                                                {{ exam.name }} <span {% if exam.grade == "Fail" %}class="text-danger"{% else %}class="text-success"{% endif %}>{{ exam.grade }}</span> {{ exam.achieved_marks }}/{{ exam.total_marks }}
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url "EasyExam:take_exam" exam.id %}">
+                                                {{ exam.name }} at {{ exam.date }}
+                                            </a>
+                                        {% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>

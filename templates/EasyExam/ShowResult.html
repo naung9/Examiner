@@ -1,0 +1,34 @@
+{% extends "EasyExam/Base.html" %}
+{% block title %}Results{% endblock %}
+{% block body %}
+    <div class="container">
+        <div class="d-flex justify-content-around mt-3 mb-3">
+            <div class="card">
+                <div class="card-title text-center"><h4 class="card-text mt-2">{% if grade == "Fail" %}Sorry, you failed{% else %}Congratulations!! You Passed{% endif %}</h4></div>
+                <div class="card-body">
+                    <table class="table table-info">
+                        <tr>
+                            <td>Exam: </td>
+                            <td>{{ exam.exam_group.name }} {{ exam.name }}</td>
+                        </tr>
+                        <tr>
+                            <td>Time: </td>
+                            <td>{{ exam.exam_start_time }}</td>
+                        </tr>
+                        <tr>
+                            <td>Total Marks: </td>
+                            <td>{{ achieved }}/{{ exam.total_marks }}</td>
+                        </tr>
+                        <tr>
+                            <td>Grade: </td>
+                            <td>{{ grade }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card-footer">
+                    <a class="btn btn-info" href="{% url "EasyExam:exam_results" exam.id %}">Review your answers</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
